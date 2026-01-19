@@ -298,7 +298,7 @@ class OutputHandler(BaseOutputHandler):
             )
 
         metrics = self._setup_output_metrics_state_attrs(engine, log_text=True, key_tuple=False)
-        logger.log(metrics, step=global_step, sync=self.sync)
+        logger.log(metrics, step=global_step)
 
 
 class OptimizerParamsHandler(BaseOptimizerParamsHandler):
@@ -358,4 +358,4 @@ class OptimizerParamsHandler(BaseOptimizerParamsHandler):
             f"{tag_prefix}{self.param_name}/group_{i}": float(param_group[self.param_name])
             for i, param_group in enumerate(self.optimizer.param_groups)
         }
-        logger.log(params, step=global_step, sync=self.sync)
+        logger.log(params, step=global_step)
