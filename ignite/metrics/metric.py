@@ -463,16 +463,20 @@ class Metric(Serializable, metaclass=ABCMeta):
             and isinstance(output, Sequence)
             and all([_is_list_of_tensors_or_numbers(o) for o in output])
         ):
-            if not (len(output) == 2 and len(output[0]) == len(output[1])):
+            if not (
+                    len(output) == len(self.required_output_keys)
+                    and len(output) >= 1  # For indexing with 0 in the next line
+                    and all([len(output[_i]) == len(output[0]) for _i in range(len(output))])
+            ):
                 raise ValueError(
-                    f"Output should have 2 items of the same length, "
-                    f"got {len(output)} and {len(output[0])}, {len(output[1])}"
+                    f"Output should have {len(self.required_output_keys)} items of the same length, "
+                    f"got {len(output)} and {len(output[0])}"
                 )
-            for o1, o2 in zip(output[0], output[1]):
-                # o1 and o2 are list of tensors or numbers
-                tensor_o1 = _to_batched_tensor(o1)
-                tensor_o2 = _to_batched_tensor(o2, device=tensor_o1.device)
-                self.update((tensor_o1, tensor_o2))
+            for outs in zip(*output, strict=True):
+                # each out in outs is list of tensors or numbers
+                tensor_h = _to_batched_tensor(outs[0])
+                tensor_t = [_to_batched_tensor(o, device=tensor_h.device) for o in outs[1:]]
+                self.update(tuple((tensor_h, *tensor_t)))
         else:
             self.update(output)
 
